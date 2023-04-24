@@ -1,10 +1,10 @@
 
 
-# Lösungsansatz
+### Lösungsansatz
 
 Die Aufgabe besteht darin, ein Echtzeitsystem zu entwickeln, das aus vier Prozessen besteht. Der erste Prozess (Conv) generiert zufällige Messwerte und prüft sie auf Plausibilität. Die nächsten beiden Prozesse (Log und Stat) lesen die Messwerte von Conv aus und führen verschiedene Operationen durch. Schließlich gibt der vierte Prozess (Report) die statistischen Daten aus. Die Synchronisationsbedingungen zwischen den Prozessen sind zu beachten.
 
-# Struktur und methodisches Vorgehen
+### Struktur und methodisches Vorgehen
 
 Um die geforderte Lösung zu implementieren, wird der folgende Ansatz verfolgt:
 
@@ -17,9 +17,9 @@ Um die geforderte Lösung zu implementieren, wird der folgende Ansatz verfolgt:
 7. Implementierung der vier Implementierungsvarianten des Programms, wobei der Datenaustausch zwischen den Prozessen einmal mit Pipes, Message Queues, Shared Memory mit Semaphore und via Sockets realisiert wird.
 8. Testen der Implementierung auf Fehler und Optimierung des Codes.
 
-# Skizzen und Diagramme für Lösungsansatz und Implementation
+### Skizzen und Diagramme für Lösungsansatz und Implementation
 
-## Strukturdiagramm
+### Strukturdiagramm
 
 Das folgende Strukturdiagramm zeigt die vier Prozesse des Echtzeitsystems und den Datenaustausch zwischen ihnen.
 
@@ -35,7 +35,7 @@ Das folgende Strukturdiagramm zeigt die vier Prozesse des Echtzeitsystems und de
                  +-----+      +-----+
 ```
 
-## Datenflussdiagramm
+### Datenflussdiagramm
 
 Das folgende Datenflussdiagramm zeigt den Datenaustausch zwischen den vier Prozessen.
 
@@ -57,21 +57,21 @@ Das folgende Datenflussdiagramm zeigt den Datenaustausch zwischen den vier Proze
         |  RNG |            |File |             |Calc.|           |Shell|
         +-----+            +-----+             +-----+           +-----+
 ```
-## Implementierungsvarianten
+### Implementierungsvarianten
 Wir werden das System mit vier verschiedenen Implementierungsvarianten erstellen, die jeweils den Datenaustausch zwischen den Prozessen mit Pipes, Message Queues, Shared Memory mit Semaphore und Sockets realisieren.
 
 Die Implementierung der verschiedenen Varianten erfordert unterschiedliche Bibliotheken und Funktionen, die für den Datenaustausch und die Synchronisation der Prozesse verwendet werden.
 
-# Pipes
+#### Pipes
 Pipes werden für die einfachste Implementierungsvariante verwendet. Wir werden die Standard-Bibliotheksfunktionen pipe(), fork(), write() und read() verwenden, um die Kommunikation zwischen den Prozessen zu realisieren.
 
-# Message Queues
+#### Message Queues
 Für die Implementierung mit Message Queues werden wir die Funktionen msgget(), msgsnd(), msgrcv() und msgctl() verwenden, die in der Bibliothek <sys/msg.h> definiert sind.
 
-# Shared Memory mit Semaphore
+#### Shared Memory mit Semaphore
 Bei der Implementierung mit Shared Memory und Semaphore wird die gemeinsam genutzte Speicherregion als Shared Memory angelegt. Zur Synchronisation wird ein Semaphore verwendet, der den Zugriff auf die Speicherregion steuert.
 
-<strong>Lösungsansatz</strong>
+##### Lösungsansatz
 1. Die Prozesse Conv, Log und Stat legen zunächst den Shared Memory an, auf den sie zugreifen werden, und initialisieren ihn mit den erforderlichen Daten.
 2. Der Semaphore wird initialisiert und auf den Wert 1 gesetzt.
 3. Conv erzeugt Zufallszahlen und schreibt sie in den Shared Memory. Bevor er schreibt, wartet er darauf, dass der Semaphore den Wert 1 hat. Wenn der Semaphore den     Wert 0 hat, wartet Conv darauf, dass der Semaphore wieder den Wert 1 hat.

@@ -57,18 +57,18 @@ Das folgende Datenflussdiagramm zeigt den Datenaustausch zwischen den vier Proze
         |  RNG |            |File |             |Calc.|           |Shell|
         +-----+            +-----+             +-----+           +-----+
 ```
-##Implementierungsvarianten
+## Implementierungsvarianten
 Wir werden das System mit vier verschiedenen Implementierungsvarianten erstellen, die jeweils den Datenaustausch zwischen den Prozessen mit Pipes, Message Queues, Shared Memory mit Semaphore und Sockets realisieren.
 
 Die Implementierung der verschiedenen Varianten erfordert unterschiedliche Bibliotheken und Funktionen, die für den Datenaustausch und die Synchronisation der Prozesse verwendet werden.
 
-#Pipes
+# Pipes
 Pipes werden für die einfachste Implementierungsvariante verwendet. Wir werden die Standard-Bibliotheksfunktionen pipe(), fork(), write() und read() verwenden, um die Kommunikation zwischen den Prozessen zu realisieren.
 
-#Message Queues
+# Message Queues
 Für die Implementierung mit Message Queues werden wir die Funktionen msgget(), msgsnd(), msgrcv() und msgctl() verwenden, die in der Bibliothek <sys/msg.h> definiert sind.
 
-#Shared Memory mit Semaphore
+# Shared Memory mit Semaphore
 Bei der Implementierung mit Shared Memory und Semaphore wird die gemeinsam genutzte Speicherregion als Shared Memory angelegt. Zur Synchronisation wird ein Semaphore verwendet, der den Zugriff auf die Speicherregion steuert.
 
 Lösungsansatz

@@ -57,3 +57,24 @@ Das folgende Datenflussdiagramm zeigt den Datenaustausch zwischen den vier Proze
         |  RNG |            |File |             |Calc.|           |Shell|
         +-----+            +-----+             +-----+           +-----+
 ```
+##Implementierungsvarianten
+Wir werden das System mit vier verschiedenen Implementierungsvarianten erstellen, die jeweils den Datenaustausch zwischen den Prozessen mit Pipes, Message Queues, Shared Memory mit Semaphore und Sockets realisieren.
+
+Die Implementierung der verschiedenen Varianten erfordert unterschiedliche Bibliotheken und Funktionen, die für den Datenaustausch und die Synchronisation der Prozesse verwendet werden.
+
+#Pipes
+Pipes werden für die einfachste Implementierungsvariante verwendet. Wir werden die Standard-Bibliotheksfunktionen pipe(), fork(), write() und read() verwenden, um die Kommunikation zwischen den Prozessen zu realisieren.
+
+#Message Queues
+Für die Implementierung mit Message Queues werden wir die Funktionen msgget(), msgsnd(), msgrcv() und msgctl() verwenden, die in der Bibliothek <sys/msg.h> definiert sind.
+
+#Shared Memory mit Semaphore
+Bei der Implementierung mit Shared Memory und Semaphore wird die gemeinsam genutzte Speicherregion als Shared Memory angelegt. Zur Synchronisation wird ein Semaphore verwendet, der den Zugriff auf die Speicherregion steuert.
+
+Lösungsansatz
+1. Die Prozesse Conv, Log und Stat legen zunächst den Shared Memory an, auf den sie zugreifen werden, und initialisieren ihn mit den erforderlichen Daten.
+2. Der Semaphore wird initialisiert und auf den Wert 1 gesetzt.
+3. Conv erzeugt Zufallszahlen und schreibt sie in den Shared Memory. Bevor er schreibt, wartet er darauf, dass der Semaphore den Wert 1 hat. Wenn der Semaphore den     Wert 0 hat, wartet Conv darauf, dass der Semaphore wieder den Wert 1 hat.
+4. Log und Stat lesen die Daten aus dem Shared Memory, indem sie auf den Semaphore warten. Wenn der Semaphore den Wert 1 hat, lesen sie die Daten und setzen den Semaphore wieder auf 1.
+5. Stat berechnet die statistischen Daten und schreibt sie in den Shared Memory. Bevor er schreibt, wartet er darauf, dass der Semaphore den Wert 1 hat. Wenn der Semaphore den Wert 0 hat, wartet Stat darauf, dass der Semaphore wieder den Wert 1 hat.
+6. Report liest die statistischen Daten aus dem Shared Memory, indem er auf den Semaphore wartet. Wenn der Semaphore den Wert 1 hat, liest Report die Daten und gibt sie in der Shell aus. Danach setzt er den Semaphore wieder auf 1.

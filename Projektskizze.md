@@ -71,7 +71,7 @@ Für die Implementierung mit Message Queues werden wir die Funktionen msgget(), 
 # Shared Memory mit Semaphore
 Bei der Implementierung mit Shared Memory und Semaphore wird die gemeinsam genutzte Speicherregion als Shared Memory angelegt. Zur Synchronisation wird ein Semaphore verwendet, der den Zugriff auf die Speicherregion steuert.
 
-bold Lösungsansatz
+<strong>Lösungsansatz</strong>
 1. Die Prozesse Conv, Log und Stat legen zunächst den Shared Memory an, auf den sie zugreifen werden, und initialisieren ihn mit den erforderlichen Daten.
 2. Der Semaphore wird initialisiert und auf den Wert 1 gesetzt.
 3. Conv erzeugt Zufallszahlen und schreibt sie in den Shared Memory. Bevor er schreibt, wartet er darauf, dass der Semaphore den Wert 1 hat. Wenn der Semaphore den     Wert 0 hat, wartet Conv darauf, dass der Semaphore wieder den Wert 1 hat.

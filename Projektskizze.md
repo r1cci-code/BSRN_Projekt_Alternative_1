@@ -62,6 +62,25 @@ Wir werden das System mit vier verschiedenen Implementierungsvarianten erstellen
 
 Die Implementierung der verschiedenen Varianten erfordert unterschiedliche Bibliotheken und Funktionen, die für den Datenaustausch und die Synchronisation der Prozesse verwendet werden.
 
+### Sockets
+1. Erstellen Sie den Server-Socket im Conv-Prozess. Dieser wird verwendet, um die Verbindung mit den Client-Sockets herzustellen. Die Funktion socket() wird verwendet, um den Socket zu erstellen, und bind() wird verwendet, um ihn an eine bestimmte Adresse zu binden (z. B. "localhost" oder eine andere lokale IP-Adresse). Danach wird listen() aufgerufen, um auf eingehende Verbindungen zu warten.
+
+2. Der Log-Prozess erstellt einen Client-Socket, der mit dem Server-Socket des Conv-Prozesses verbunden wird. Die Funktion socket() wird verwendet, um den Socket zu erstellen, und connect() wird verwendet, um eine Verbindung zum Server-Socket herzustellen.
+
+3. Der Stat-Prozess erstellt ebenfalls einen Client-Socket und verbindet sich mit dem Server-Socket des Conv-Prozesses.
+
+4. Der Report-Prozess erstellt auch einen Client-Socket und verbindet sich mit dem Server-Socket des Stat-Prozesses.
+
+5. Der Conv-Prozess generiert Zufallszahlen und sendet sie über den Socket an den Log-Prozess. Hierfür wird send() verwendet, um die Daten an den Client-Socket zu senden.
+
+6. Der Log-Prozess empfängt die Daten vom Socket mit recv() und schreibt sie in eine lokale Datei. Danach sendet er die Daten über einen anderen Socket an den Stat-Prozess.
+
+7. Der Stat-Prozess empfängt die Daten vom Socket, berechnet statistische Daten und sendet die Ergebnisse über einen anderen Socket an den Report-Prozess.
+
+8. Der Report-Prozess empfängt die Ergebnisse vom Socket mit recv() und gibt sie in der Shell aus.
+
+Es gibt noch weitere Details, die bei der Implementierung zu beachten sind, wie beispielsweise die Verwendung von select() oder Threads, um eingehende Verbindungen und Datenverkehr auf den Sockets zu verwalten.
+
 ### Pipes
 Pipes werden für die einfachste Implementierungsvariante verwendet. Wir werden die Standard-Bibliotheksfunktionen **pipe()**, **fork()**, **write()** und **read()** verwenden, um die Kommunikation zwischen den Prozessen zu realisieren.
 

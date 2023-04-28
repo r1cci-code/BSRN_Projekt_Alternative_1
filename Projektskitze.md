@@ -8,6 +8,7 @@ Hier geben Sie eine erste Lösungsskizze für Werkstück A ab, bestehend aus:
 
 ## Gruppenmitglieder:
 Daniel Riccius 1459702
+Etienne Garcia Vihola 1443543
 
 ## Lösungsansatz
 Unsere Aufgabe ist es ein Echtzeitsystem zu erstellen, das aus vier Prozessen besteht. 

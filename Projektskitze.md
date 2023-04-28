@@ -32,7 +32,6 @@ Des Weiteren soll man mit dem Befehl Ctrl-C das Programm beenden können, indem 
 
 <img width="600" alt="Strukturdiagramm - Datenaustausch" src="https://user-images.githubusercontent.com/112110296/235185286-2b54c30e-961e-4e67-895f-d6a09a51f6c4.png">
 
-### Datenflussdiagramm
 ## Implementierungsvarianten
 ### Pipes
 Pipes werden für die einfachste Implementierungsvariante verwendet. Wir werden die Standard-Bibliotheksfunktionen pipe(), fork(), write() und read() verwenden, um die Kommunikation zwischen den Prozessen zu realisieren.
@@ -46,7 +45,9 @@ Der Report-Prozess erstellt ebenfalls einen Client-Socket jedoch verbindet sich 
 
 Jetzt kann der Conv-Prozess zahlen generieren und diese per Socket an den Log-Prozess schicken. Der Log-Prozess speichert die Zahlen in einer Datei und sendet diese per Socket an den Stat-Prozess weiter. Dieser rechnet und übermittelt das Ergebnis per Socket weiter an den Report-Prozess, welcher die Ergebnisse schließlich in der Shell ausgibt.
 
-
-
 ### Message Queues
-#### Lösungsansatz
+Für die Implementierung mit Message Queues werden wir die Funktionen msgget(), msgsnd(), msgrcv() und msgctl() verwenden, die in der Bibliothek <sys/msg.h> definiert sind.
+
+### Shared Memory mit Semaphore
+Bei der Implementierung mit Shared Memory und Semaphore wird die gemeinsam genutzte Speicherregion als Shared Memory angelegt. Zur Synchronisation wird ein Semaphore verwendet, der den Zugriff auf die Speicherregion steuert.
+

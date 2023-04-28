@@ -6,6 +6,9 @@ Hier geben Sie eine erste Lösungsskizze für Werkstück A ab, bestehend aus:
 2. Methodisches Vorgehen zur Lösungsfindung (bisherig und noch geplant)
 3. Skizzen zum Lösungsansatz (Diagramme, Zeichnungen, Programmschnipsel, etc.)
 
+## Gruppenmitglieder:
+Daniel Riccius 1459702
+
 ## Lösungsansatz
 Unsere Aufgabe ist es ein Echtzeitsystem zu erstellen, das aus vier Prozessen besteht. 
 

@@ -10,6 +10,9 @@ Hier geben Sie eine erste Lösungsskizze für Werkstück A ab, bestehend aus:
 ## Struktur und methodisches Vorgehen
 ## Skizzen und Diagramme für Lösungsansatz und Implementation
 ### Strukturdiagramm
+
+<img width="1584" alt="Strukturdiagramm - Datenaustausch" src="https://user-images.githubusercontent.com/112110296/235185286-2b54c30e-961e-4e67-895f-d6a09a51f6c4.png">
+
 ### Datenflussdiagramm
 ## Implementierungsvarianten
 ### Sockets

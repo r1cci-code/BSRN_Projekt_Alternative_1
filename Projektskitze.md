@@ -8,6 +8,7 @@ Hier geben Sie eine erste Lösungsskizze für Werkstück A ab, bestehend aus:
 
 ## Gruppenmitglieder:
 Daniel Riccius 1459702
+
 Etienne Garcia Vihola 1443543
 
 ## Lösungsansatz
@@ -33,6 +34,9 @@ Des Weiteren soll man mit dem Befehl Ctrl-C das Programm beenden können, indem 
 
 ### Datenflussdiagramm
 ## Implementierungsvarianten
+### Pipes
+Pipes werden für die einfachste Implementierungsvariante verwendet. Wir werden die Standard-Bibliotheksfunktionen pipe(), fork(), write() und read() verwenden, um die Kommunikation zwischen den Prozessen zu realisieren.
+
 ### Sockets
 Zuerst muss der Server-Socket im Conv-Prozess erstellt werden.  
 
@@ -42,6 +46,7 @@ Der Report-Prozess erstellt ebenfalls einen Client-Socket jedoch verbindet sich 
 
 Jetzt kann der Conv-Prozess zahlen generieren und diese per Socket an den Log-Prozess schicken. Der Log-Prozess speichert die Zahlen in einer Datei und sendet diese per Socket an den Stat-Prozess weiter. Dieser rechnet und übermittelt das Ergebnis per Socket weiter an den Report-Prozess, welcher die Ergebnisse schließlich in der Shell ausgibt.
 
-### Pipes
+
+
 ### Message Queues
 #### Lösungsansatz

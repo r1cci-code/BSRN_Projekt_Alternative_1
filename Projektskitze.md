@@ -43,7 +43,7 @@ Danach müssen der Log-Prozess und der Stat-Prozess einen Client-Socket erstelle
 
 Der Report-Prozess erstellt ebenfalls einen Client-Socket jedoch verbindet sich dieser mit dem Server-Socket des Stat-Prozesses. 
 
-Jetzt kann der Conv-Prozess zahlen generieren und diese per Socket an den Log-Prozess schicken. Der Log-Prozess speichert die Zahlen in einer Datei und sendet diese per Socket an den Stat-Prozess weiter. Dieser rechnet und übermittelt das Ergebnis per Socket weiter an den Report-Prozess, welcher die Ergebnisse schließlich in der Shell ausgibt.
+Jetzt kann der Conv-Prozess zahlen generieren und diese per Socket an den Log-Prozess und an den Stat-Prozess schicken. Der Log-Prozess speichert die Zahlen in einer Datei und der Stat-Prozess rechnet und übermittelt das Ergebnis per Socket weiter an den Report-Prozess, welcher die Ergebnisse schließlich in der Shell ausgibt.
 
 ### Message Queues
 Für die Implementierung mit Message Queues werden wir die Funktionen msgget(), msgsnd(), msgrcv() und msgctl() verwenden, die in der Bibliothek <sys/msg.h> definiert sind.

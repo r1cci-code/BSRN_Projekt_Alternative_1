@@ -29,7 +29,7 @@ Des Weiteren soll man mit dem Befehl Ctrl-C das Programm beenden können, indem 
 ## Struktur und methodisches Vorgehen
 ## Skizzen und Diagramme für Lösungsansatz und Implementation
 ### Strukturdiagramm
-<img width="600" alt="Strukturdiagramm - Datenaustausch v2" src="https://user-images.githubusercontent.com/112110296/235206131-7e09902c-5747-4786-9cd5-14742de51828.png">
+<img width="600" alt="Strukturdiagramm - Datenaustausch v3" src="https://user-images.githubusercontent.com/112110296/235207265-50e32d1b-91f9-4f0b-aaf1-37f82438c5f0.png">
 
 ## Implementierungsvarianten
 ### Pipes

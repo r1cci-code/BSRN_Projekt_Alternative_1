@@ -12,6 +12,8 @@ Daniel Riccius 1459702
 Etienne Garcia Vihola 1443543
 
 Tolgahan Sahin 1405743
+
+Axia Ponpeelius 1459634
 ## Lösungsansatz
 Unsere Aufgabe ist es ein Echtzeitsystem zu erstellen, das aus vier Prozessen besteht. 
 

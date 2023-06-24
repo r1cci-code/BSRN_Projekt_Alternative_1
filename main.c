@@ -368,6 +368,24 @@ void doStatProcess() {
             break;
         case SHARED_MEMORY:
             // Implement the functionality using shared memory here
+            while (!flag) {
+                sem_wait(semid);
+                int num = shm_data->num;
+                shm_data->sum += num;
+                shm_data->count++;
+                if (shm_data->count % 1000 == 0) {
+                    shm_data->mean = shm_data->sum / shm_data->count;
+                    int sum = shm_data->sum;
+                    int mean = shm_data->mean;
+                    sem_post(semid);
+                    write(pipe3[1], &sum, sizeof(sum));
+                    write(pipe3[1], &mean, sizeof(mean));
+                }
+                else {
+                    sem_post(semid);
+                }
+            }
+            exit(0);
             break;
         default:
             fprintf(stderr, "Unsupported communication method\n");

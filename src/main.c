@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <string.h>
 
 // der Port auf dem die Sockets kommunizieren
 #define Port1 50001
@@ -36,14 +37,11 @@ volatile sig_atomic_t flag = 0;
 void handler(int sig) {
     flag = 1;
 }
-// sockets werden definiert
-int socket1[2], socket2[2], socket3[2], socket4[2];
 
 // die Pipes werden definiert, Prozess Identification wird mit pid_t datentyp erstellt, File wird auf NULL gesetzt
 int pipe1[2], pipe2[2], pipe3[2], pipe4[2];
 pid_t p1, p2, p3, p4;
 FILE *logFile = NULL;
-
 
 // es ist eventuell nötig auch ein case handling für cleanup() zu verwenden um alle möglichen
 // Kommunikationsmethoden ordnungsgemäß zu beenden
@@ -68,14 +66,6 @@ void cleanup() {
             break;
         case SOCKETS:
             // Implement the functionality using sockets here
-            close(socket1[0]);
-            close(socket1[1]);
-            close(socket2[0]);
-            close(socket2[1]);
-            close(socket3[0]);
-            close(socket3[1]);
-            close(socket4[0]);
-            close(socket4[1]);
             break;
         case SHARED_MEMORY:
             // Implement the functionality using shared memory here
@@ -117,18 +107,46 @@ void doConvProcess() {
             address.sin_addr.s_addr = INADDR_ANY;
             address.sin_port = htons( Port1 );
 
-            bind(socket1[1], (struct sockaddr *)&address, sizeof(address));
-            listen(socket1[1], 3);
-            int new_socket = accept(socket1[1], (struct sockaddr *)&address, (socklen_t*)&addrlen);
+            // Create a socket
+            int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+            if (sockfd < 0) {
+                perror("socket creation failed");
+                exit(EXIT_FAILURE);
+            }
+
+            if (bind(sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+                perror("bind failed");
+                exit(EXIT_FAILURE);
+            }
+
+            if (listen(sockfd, 3) < 0) {
+                perror("listen failed");
+                exit(EXIT_FAILURE);
+            }
+
+            int new_socket = accept(sockfd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+            if (new_socket < 0) {
+                perror("accept failed");
+                exit(EXIT_FAILURE);
+            }
 
             while(!flag) {
-                int num = conv();
-                send(new_socket, &num, sizeof(num), 0);
+                int num_m_socket = conv();
+                if (send(new_socket, &num_m_socket, sizeof(num_m_socket), 0) < 0) {
+                    perror("send failed");
+                    break;
+                }
+                printf("sending data\n");
                 usleep(USEC_PER_SEC / NUM_SAMPLES_PER_SEC);  
             }
 
-            close(socket1[1]);
-            close(new_socket);
+            if (close(sockfd) < 0) {
+                perror("close sockfd failed");
+            }
+
+            if (close(new_socket) < 0) {
+                perror("close new_socket failed");
+            }
             exit(0);
             break;
         case SHARED_MEMORY:
@@ -137,9 +155,7 @@ void doConvProcess() {
         default:
             fprintf(stderr, "Unsupported communication method\n");
             exit(1);
-        }
-    
-    
+    }
 }
 
 void doLogProcess() {
@@ -148,6 +164,7 @@ void doLogProcess() {
             // Implement the functionality using pipes here
             close(pipe1[1]);
             close(pipe2[0]);
+
             FILE *file = fopen("log.txt", "w");
             if (file == NULL) {
                 printf("Error opening file!\n");
@@ -170,45 +187,44 @@ void doLogProcess() {
             break;
         case SOCKETS:
             // Implement the functionality using sockets here
+            int sock = socket(AF_INET, SOCK_STREAM, 0);
+            if (sock < 0) {
+                perror("Socket creation error");
+                exit(EXIT_FAILURE);
+            }
+
             struct sockaddr_in serv_addr;
-            int valread;
-
-            // Konfiguration des Socket
             serv_addr.sin_family = AF_INET;
-            serv_addr.sin_port = htons( Port2 );
+            serv_addr.sin_port = htons(Port2);
 
-            // Convert IPv4 and IPv6 addresses from text to binary form
-            if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
-                printf("\nInvalid address/ Address not supported \n");
-                return -1;
+            if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+                perror("Invalid address/Address not supported");
+                exit(EXIT_FAILURE);
             }
 
-            if (connect(socket1[0], (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-                printf("\nConnection Failed \n");
-                return -1;
+            if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+                perror("Connection Failed");
+                exit(EXIT_FAILURE);
             }
 
-            // Eröffnen der Log-Datei
-            FILE *file = fopen("log.txt", "w");
-            if (file == NULL) {
-                printf("Error opening file!\n");
-                exit(1);
+            FILE *file_socket = fopen("log.txt", "w");
+            if (file_socket == NULL) {
+                perror("Error opening file");
+                exit(EXIT_FAILURE);
             }
 
-            int num;
-            int count = 0;
+            int num_m_socket;
+            int count_m_socket = 0;
             while (!flag) {
-                valread = read(socket1[0], &num, sizeof(num));
-                if(valread > 0) {
-                    fprintf(file, "Messwert %d: %d\n", count+1, num);
-                    count++;
-                    write(socket2[1], &num, sizeof(num)); // Write the number to socket2 for the stat process
+                int valread = recv(sock, &num_m_socket, sizeof(num_m_socket), 0);
+                if (valread > 0) {
+                    fprintf(file_socket, "Messwert %d: %d\n", count_m_socket+1, num_m_socket);
+                    count_m_socket++;
                 }
             }
 
-            fclose(file);
-            close(socket1[0]);
-            close(socket2[1]);
+            fclose(file_socket);
+            close(sock);
             exit(0);
             break;
         case SHARED_MEMORY:
@@ -248,30 +264,56 @@ void doStatProcess() {
         case SOCKETS:
             // Implement the functionality using sockets here
             struct sockaddr_in address;
-            int valread, addrlen = sizeof(address);
+            int server_fd, new_socket, valread;
+            int opt = 1;
+            int addrlen = sizeof(address);
             
             address.sin_family = AF_INET;
             address.sin_addr.s_addr = INADDR_ANY;
             address.sin_port = htons( Port3 );
 
-            bind(socket2[0], (struct sockaddr *)&address, sizeof(address));
-            listen(socket2[0], 3);
-            int new_socket = accept(socket2[0], (struct sockaddr *)&address, (socklen_t*)&addrlen);
+            // Creating socket file descriptor
+            if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+                perror("socket failed");
+                exit(1);
+            }
 
-            int num, sum = 0, count = 0, mean;
+            // Forcefully attaching socket to the port
+            if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
+                perror("setsockopt");
+                exit(1);
+            }
+
+            // Forcefully attaching socket to the port
+            if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+                perror("bind failed");
+                exit(1);
+            }
+
+            if (listen(server_fd, 3) < 0) {
+                perror("listen");
+                exit(1);
+            }
+
+            if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
+                perror("accept");
+                exit(1);
+            }
+
+            int num_m_socket, sum_m_socket = 0, count_m_socket = 0, mean_m_socket;
             while (!flag) {
-                valread = read(new_socket, &num, sizeof(num));
+                valread = read(new_socket, &num_m_socket, sizeof(num_m_socket));
                 if (valread > 0) {
-                    sum += num;
-                    count++;
-                    if (count % 1000 == 0) {
-                        mean = sum / count;
-                        write(socket3[1], &sum, sizeof(sum));
-                        write(socket3[1], &mean, sizeof(mean));
+                    sum_m_socket += num_m_socket;
+                    count_m_socket++;
+                    if (count_m_socket % 1000 == 0) {
+                        mean_m_socket = sum_m_socket / count_m_socket;
+                        send(new_socket, &sum_m_socket, sizeof(sum_m_socket), 0);
+                        send(new_socket, &mean_m_socket, sizeof(mean_m_socket), 0);
                     }
                 }
             }
-            close(socket2[0]);
+            close(server_fd);
             close(new_socket);
             exit(0);
             break;
@@ -311,7 +353,7 @@ void doReportProcess() {
 
                 if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
                     printf("\n Socket creation error \n");
-                    exit(EXIT_FAILURE);
+                    exit(1);
                 }
 
                 memset(&serv_addr, '0', sizeof(serv_addr));
@@ -322,18 +364,18 @@ void doReportProcess() {
                 // Convert IPv4 and IPv6 addresses from text to binary form
                 if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
                     printf("\nInvalid address/ Address not supported \n");
-                    exit(EXIT_FAILURE);
+                    exit(1);
                 }
 
                 if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-                    printf("\nConnection Failed \n");
-                    exit(EXIT_FAILURE);
+                    printf("\nConnection Failed on sock \n");
+                    exit(1);
                 }
 
-                int sum, mean;
+                int sum_m_socket, mean_m_socket;
                 while (!flag) {
-                    if (read(sock, &sum, sizeof(sum)) > 0 && read(sock, &mean, sizeof(mean)) > 0) {
-                        printf("Summe: %d, Mittelwert: %d\n", sum, mean);
+                    if (read(sock, &sum_m_socket, sizeof(sum_m_socket)) > 0 && read(sock, &mean_m_socket, sizeof(mean_m_socket)) > 0) {
+                        printf("Summe: %d, Mittelwert: %d\n", sum_m_socket, mean_m_socket);
                     }
                 }
                 close(sock);
@@ -368,12 +410,6 @@ int main() {
             break;
         case SOCKETS:
             // Implement the functionality using sockets here
-            for (int i = 0; i < 2; i++) {
-                socket1[i] = socket(AF_INET, SOCK_STREAM, 0);
-                socket2[i] = socket(AF_INET, SOCK_STREAM, 0);
-                socket3[i] = socket(AF_INET, SOCK_STREAM, 0);
-                socket4[i] = socket(AF_INET, SOCK_STREAM, 0);
-            }
             break;
         case SHARED_MEMORY:
             // Implement the functionality using shared memory here

@@ -13,18 +13,10 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 
-
-// der Port auf dem die Sockets kommunizieren
-#define Port1 50001
-#define Port2 50002
-#define Port3 50003
-#define Port4 50004
-
 //zurzeit wird nur alle 1000 Messwerte mit dem Stat Prozess berechnet und ausgegeben.
 #define USEC_PER_SEC 1000000
 #define NUM_SAMPLES_PER_SEC 1000
-#define INT_MAX 256
-#define INT_MIN 0
+
 
 volatile sig_atomic_t flag = 0;
 
@@ -54,15 +46,15 @@ SharedData* shm_data; // pointer to shared memory data structure
 int semid; // semaphore ID
 
 
-// es ist eventuell nötig auch ein case handling für cleanup() zu verwenden um alle möglichen
-// Kommunikationsmethoden ordnungsgemäß zu beenden
+
+// Prozesse ordnungsgemäß  beenden
 void cleanup() {
-        // Detach and remove shared memory
-        shmdt(shm_data);
-        shmctl(shmid, IPC_RMID, NULL);
-        // Remove semaphore
-        semctl(semid, 0, IPC_RMID);
+    shmdt(shm_data);
+    shmctl(shmid, IPC_RMID, NULL);
+    // Remove semaphore
+    semctl(semid, 0, IPC_RMID);
 }
+
 
     // Semaphore operations
     void P() {
@@ -74,7 +66,6 @@ void cleanup() {
             perror("semop");
             exit(1);
         }
-
     }
 
     void V() {
@@ -86,7 +77,6 @@ void cleanup() {
             perror("semop");
             exit(1);
         }
-
     }
 
 
@@ -97,7 +87,7 @@ int conv() {
     return num;
 }
 
-void convProcess() {
+void doConvProcess() {
         // Generate random numbers and store them in shared memory
             while (!flag) {
                 int num = conv();
@@ -109,9 +99,14 @@ void convProcess() {
                 V();
                 usleep(USEC_PER_SEC / NUM_SAMPLES_PER_SEC);
             }
+            break;
+        default:
+            fprintf(stderr, "Unsupported communication method\n");
+            exit(1);
 }
+    
 
-void logProcess() {
+void doLogProcess() {
             FILE* file = fopen("log.txt", "w");
             if (file == NULL) {
                 printf("Error opening file!\n");
@@ -137,9 +132,14 @@ void logProcess() {
 
             fclose(file);
             exit(0);
-}
 
-void statProcess() {
+            break;
+        default:
+            fprintf(stderr, "Unsupported communication method\n");
+            exit(1);
+    }
+
+void doStatProcess() {
             while (!flag) {
                 sem_wait(semid);
                 int num = shm_data->num;
@@ -150,14 +150,18 @@ void statProcess() {
                     int sum = shm_data->sum;
                     int mean = shm_data->mean;
                     sem_post(semid);
+                    write(pipe3[1], &sum, sizeof(sum));
+                    write(pipe3[1], &mean, sizeof(mean));
                 }
                 else {
                     sem_post(semid);
                 }
             }
+            exit(0);
 }
 
-void reportProcess() {
+
+void doReportProcess() {
             FILE* file = fopen("log.txt", "r");
             if (file == NULL) {
                 printf("Error opening file!\n");
@@ -186,16 +190,17 @@ void reportProcess() {
             printf("Durchschnitt der Messwerte: %.2f\n", (float)sum / count);
             exit(0);
 }
+        
 
 int main() {
     signal(SIGINT, handler);
         shmid = shmget(SHM_KEY, sizeof(SharedData), IPC_CREAT | 0666);
-        if (shmid == -1) {
+         if (shmid == -1) {
             perror("shmget");
             exit(1);
         }
 
-            // Attach shared memory
+        // Attach shared memory
         shm_data = (SharedData*)shmat(shmid, NULL, 0);
         if (shm_data == (void*)-1) {
             perror("shmat");
@@ -203,6 +208,7 @@ int main() {
         }
         // Initialize semaphore value
         semctl(semid, 0, SETVAL, 1);
+
 
     // hier werden durch fork() Elternprozesse dupliziert und so die Kindprozesse erstellt. Sie erben die funktionalität
     p1 = fork();
@@ -212,7 +218,7 @@ int main() {
     }
 
     if (p1 == 0) {
-        convProcess();
+        doConvProcess();
     } 
 
     p2 = fork();
@@ -222,7 +228,7 @@ int main() {
     }
 
     if (p2 == 0) {
-        logProcess();
+        doLogProcess();
     }
 
     p3 = fork();
@@ -232,7 +238,7 @@ int main() {
     }
 
     if (p3 == 0) {
-        statProcess();
+        doStatProcess();
     }
 
     p4 = fork();
@@ -242,8 +248,12 @@ int main() {
     }
 
     if (p4 == 0) {
-        reportProcess();
+        doReportProcess();
     }
+
+    // Close the write end of pipe3 and the read end of pipe2 in the parent process
+    close(pipe3[1]);
+    close(pipe2[0]);
 
     while(!flag);
 
